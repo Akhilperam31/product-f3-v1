@@ -1,0 +1,13 @@
+crewai
+pypdf
+pydantic
+python-dotenv
+python-docx
+crewai_tools
+tavily-python
+fastapi
+uvicorn
+jinja2
+openai
+python-multipart
+langchain-openai

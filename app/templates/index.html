@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interviewer - Professional Assessment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: rgba(20, 20, 20, 0.7);
+            --accent-color: #00d2ff;
+            --accent-glow: rgba(0, 210, 255, 0.3);
+            --text-color: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .glass-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        h1 {
+            font-weight: 600;
+            margin: 0;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .visualizer-container {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #visualizer {
+            width: 100%;
+            height: 80px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 400;
+            display: inline-block;
+            margin: 0 auto;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            background: var(--accent-glow);
+            transition: all 0.3s ease;
+        }
+
+        .chat-display {
+            height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .chat-display .agent {
+            color: var(--accent-color);
+            margin-bottom: 12px;
+        }
+
+        .chat-display .user {
+            color: #888;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 14px 28px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.3s transform;
+        }
+
+        .btn-start {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            color: white;
+        }
+
+        .btn-record {
+            background: #4b6cb7;
+            color: white;
+        }
+
+        .btn-submit {
+            background: #ff4b2b;
+            color: white;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            filter: opacity(0.9);
+        }
+
+        button:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+            filter: grayscale(1);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Upload Specific Styling */
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .file-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 300px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="file"] {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            color: #888;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #111;
+            border-bottom-color: var(--accent-color);
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- STEP 1: UPLOAD -->
+    <div class="glass-container" id="upload-container">
+        <h1>Talent Intelligence</h1>
+        <form id="uploadForm" class="upload-form">
+            <div class="file-group">
+                <label>Resume (PDF, DOCX, TXT)</label>
+                <input type="file" id="resume" accept=".pdf,.docx,.txt" required>
+            </div>
+            <div class="file-group">
+                <label>Job Description (PDF, DOCX, TXT)</label>
+                <input type="file" id="jd" accept=".pdf,.docx,.txt" required>
+            </div>
+            <button type="submit" class="btn-start">Process & Start Interview</button>
+        </form>
+    </div>
+
+    <!-- STEP 2: INTERVIEW (EXACT ORIGINAL FRONTEND) -->
+    <div class="glass-container" id="interview-container" style="display: none;">
+        <h1>AI Interviewer</h1>
+        <div class="status-badge" id="status">Standby</div>
+
+        <div class="visualizer-container">
+            <canvas id="visualizer"></canvas>
+        </div>
+
+        <div class="chat-display" id="chat">
+            <div class="agent">Intelligence extracted. Session starting...</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-start" id="startBtn" style="display: none;">Start Interview</button>
+            <div id="activeControls" style="display: flex; gap: 20px;">
+                <button class="btn-record" id="recordBtn">Answer</button>
+                <button class="btn-submit" id="submitBtn">Submit Answer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <div style="color: white; font-size: 1.1rem; letter-spacing: 2px;">ANALYZING...</div>
+        <div style="color: #666; font-size: 0.8rem;">Agents are collaborating on your profile.</div>
+    </div>
+
+    <script>
+        // --- UPLOAD LOGIC ---
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadContainer = document.getElementById('upload-container');
+        const interviewContainer = document.getElementById('interview-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        uploadForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('resume', document.getElementById('resume').files[0]);
+            formData.append('jd', document.getElementById('jd').files[0]);
+
+            loadingOverlay.style.display = 'flex';
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.session_id) {
+                    loadingOverlay.style.display = 'none';
+                    uploadContainer.style.display = 'none';
+                    interviewContainer.style.display = 'flex';
+                    initInterview(data.session_id);
+                } else {
+                    alert('Error: ' + (data.error || 'Upload failed'));
+                    loadingOverlay.style.display = 'none';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+                loadingOverlay.style.display = 'none';
+            }
+        };
+
+        // --- INTERVIEW LOGIC (ORIGINAL ADAPTED) ---
+        let socket;
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordStartTime;
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let canvas = document.getElementById('visualizer');
+        let ctx = canvas.getContext('2d');
+
+        const recordBtn = document.getElementById('recordBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusBadge = document.getElementById('status');
+        const chatDisplay = document.getElementById('chat');
+
+        let audioQueue = [];
+        let isPlaying = false;
+
+        function playNextInQueue() {
+            if (audioQueue.length === 0) {
+                isPlaying = false;
+                updateStatus('Listening');
+                recordBtn.disabled = false;
+                return;
+            }
+            isPlaying = true;
+            recordBtn.disabled = true;
+            const item = audioQueue.shift();
+            addMessage('agent', item.text);
+            const audio = new Audio("data:audio/mp3;base64," + item.audio_base64);
+            updateStatus('Speaking...', true);
+            audio.play();
+            audio.onended = () => { playNextInQueue(); };
+        }
+
+        function addMessage(who, text) {
+            const div = document.createElement('div');
+            div.className = who;
+            div.innerText = (who === 'agent' ? 'Bot: ' : 'You: ') + text;
+            chatDisplay.appendChild(div);
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        }
+
+        function updateStatus(text, active = false) {
+            statusBadge.innerText = text;
+            statusBadge.style.boxShadow = active ? '0 0 15px ' + getComputedStyle(document.documentElement).getPropertyValue('--accent-color') : 'none';
+        }
+
+        async function initAudio() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            mediaRecorder.ondataavailable = event => { if (event.data.size > 0) audioChunks.push(event.data); };
+            mediaRecorder.onstop = () => {
+                const duration = Date.now() - recordStartTime;
+                if (audioChunks.length === 0 || duration < 500) {
+                    updateStatus('Listening');
+                    recordBtn.disabled = false;
+                    audioChunks = [];
+                    return;
+                }
+                const audioBlob = new Blob(audioChunks, { type: mimeType });
+                if (audioBlob.size > 500 && socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(audioBlob);
+                    updateStatus('Thinking...');
+                } else {
+                    updateStatus('Listening');
+                    recordBtn.disabled = false;
+                }
+                audioChunks = [];
+            };
+            draw();
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let barWidth = (canvas.width / dataArray.length) * 2.5;
+            let barHeight;
+            let x = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                barHeight = dataArray[i] / 2;
+                ctx.fillStyle = `rgba(0, 210, 255, ${barHeight / 128})`;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+        }
+
+        async function initInterview(sessionId) {
+            await initAudio();
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            socket = new WebSocket(`${protocol}//${window.location.host}/ws/interview/${sessionId}`);
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'agent_speech') {
+                    audioQueue.push(data);
+                    if (!isPlaying) playNextInQueue();
+                } else if (data.type === 'user_transcript') {
+                    addMessage('user', data.text);
+                }
+            };
+            socket.onclose = () => {
+                updateStatus('Session Ended');
+                recordBtn.disabled = true;
+            };
+        }
+
+        recordBtn.onclick = () => {
+            if (mediaRecorder.state === 'inactive') {
+                audioChunks = [];
+                recordStartTime = Date.now();
+                mediaRecorder.start();
+                recordBtn.disabled = true;
+                submitBtn.disabled = false;
+                updateStatus('Recording...', true);
+            }
+        };
+
+        submitBtn.onclick = () => {
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                submitBtn.disabled = true;
+                recordBtn.disabled = true;
+            }
+        };
+
+        submitBtn.disabled = true;
+    </script>
+</body>
+
+</html>

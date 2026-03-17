@@ -1,0 +1,11 @@
+.env
+__pycache__/
+data/uploads/*
+.DS_Store
+*.pyc
+venv/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/
