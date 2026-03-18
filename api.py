@@ -11,9 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from app.crew import run_full_interview_pipeline
 from app.agents import InterviewerCrew
 from app.speech import SpeechService
-from dotenv import load_dotenv
-
-load_dotenv()
+import streamlit as st
 
 app = FastAPI()
 
