@@ -4,6 +4,7 @@ pydantic
 python-dotenv
 python-docx
 crewai_tools
+tiktoken==0.7.0
 tavily-python
 fastapi
 uvicorn
