@@ -2,9 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from langchain_openai import ChatOpenAI
 from app.tools import extract_document_tool, search_tool
 import os
-from dotenv import load_dotenv
+import streamlit as st
 
-load_dotenv()
 
 def get_agents():
     extractor_agent = Agent(
@@ -103,7 +102,8 @@ class InterviewerCrew:
     def __init__(self):
         self.llm = ChatOpenAI(
             model="gpt-4o", 
-            temperature=0.5
+            temperature=0.5,
+            openai_api_key=st.secrets["OPENAI_API_KEY"]
         )
         
     def create_interviewer_agent(self, script_data: dict) -> Agent:
