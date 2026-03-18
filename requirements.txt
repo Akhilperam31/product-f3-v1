@@ -4,8 +4,8 @@ pydantic
 python-dotenv
 python-docx
 crewai_tools
-tiktoken==0.7.0
 tavily-python
+tiktoken==0.7.0
 fastapi
 uvicorn
 jinja2
