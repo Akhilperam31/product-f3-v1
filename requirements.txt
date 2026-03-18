@@ -4,7 +4,7 @@ pydantic
 python-dotenv
 python-docx
 crewai_tools
-tavily-python
+tavily-python<0.7
 
 fastapi
 uvicorn
