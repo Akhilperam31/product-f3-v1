@@ -1,12 +1,13 @@
 import os
-from dotenv import load_dotenv
+import streamlit as st
 from crewai.tools import tool
 from crewai_tools import TavilySearchTool
 from pypdf import PdfReader
 import docx
 
 # Load environment variables
-load_dotenv()
+
+tavily_api_key = st.secrets["TAVILY_API_KEY"]
 
 @tool("Document Extractor Tool")
 def extract_document_tool(file_path: str) -> str:
@@ -36,4 +37,4 @@ def extract_document_tool(file_path: str) -> str:
         return f"Error extracting document text: {str(e)}"
 
 # Initialize Search Tool
-search_tool = TavilySearchTool()
+search_tool = TavilySearchTool(api_key=tavily_api_key)
