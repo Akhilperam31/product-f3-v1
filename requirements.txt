@@ -5,7 +5,7 @@ python-dotenv
 python-docx
 crewai_tools
 tavily-python<0.7
-
+streamlit
 fastapi
 uvicorn
 jinja2
